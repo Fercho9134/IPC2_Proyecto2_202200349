@@ -7,7 +7,7 @@ class ListaDoblementeEnlazada:
         self.final = None
         self.cantidad_elementos = 0
 
-    def agregar_al_final(self, objeto):
+    def insertar(self, objeto):
         nuevo_nodo = Nodo(objeto)
         if self.cantidad_elementos == 0:
             self.inicio = nuevo_nodo
@@ -18,12 +18,21 @@ class ListaDoblementeEnlazada:
             self.final = nuevo_nodo
         self.cantidad_elementos += 1
 
-    def eliminar(self, objeto):
+    def buscar(self, nombre):
+        actual = self.inicio
+        while actual:
+            if actual.objeto.nombre == nombre:
+                return actual.objeto
+            actual = actual.siguiente
+
+        return None
+
+    def eliminar(self, nombre):
         
         actual = self.inicio
 
         while actual:
-            if actual.objeto.nombre == objeto.nombre:
+            if actual.objeto.nombre == nombre:
                 if actual.anterior:
                     actual.anterior.siguiente = actual.siguiente
                 else:
