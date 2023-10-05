@@ -48,7 +48,7 @@ class ListaDoblementeEnlazada:
     def buscar_altura(self, altura):
         actual = self.inicio
         while actual:
-            if actual.objeto.altura == altura:
+            if int(actual.objeto.altura) == altura:
                 #devuelve el objeto altura
                 return actual.objeto
             actual = actual.siguiente
