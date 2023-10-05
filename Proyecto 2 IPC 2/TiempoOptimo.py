@@ -8,7 +8,7 @@ from Procesar_xml import obtenerLetra
 
 import copy
 
-def obtenerFormasPosibles(mensaje, forma, dron_actual, altura_actual, caracter_actual, lista_formas_posibles):
+"""def obtenerFormasPosibles(mensaje, forma, dron_actual, altura_actual, caracter_actual, lista_formas_posibles):
     if forma is None:
         forma = ListaDoblementeEnlazada()
 
@@ -44,6 +44,7 @@ def obtenerFormasPosibles(mensaje, forma, dron_actual, altura_actual, caracter_a
 
     return lista_formas_posibles
 
+"""
 
 def obtenerTiempoDeCadaForma(lista_formas_posibles, lista_drones):
     primera_forma = lista_formas_posibles.inicio
@@ -62,6 +63,8 @@ def obtenerTiempoDeCadaForma(lista_formas_posibles, lista_drones):
 
             if ultimo_dron == nombre_dron:
                 seRepite = True
+            else:
+                seRepite = False
 
             # Para la primera letra siempre va a subir al menos un metro
             if altura_maxima == 0:
@@ -73,6 +76,7 @@ def obtenerTiempoDeCadaForma(lista_formas_posibles, lista_drones):
                 # Tiempo en emitir la letra
                 tiempo += 1
                 forma_actual.objeto.tiempo_emision = tiempo
+                dron_actual.ultima_emision = tiempo
 
             else:
                 # Casos para los que no se trata del primer caracter
@@ -83,15 +87,17 @@ def obtenerTiempoDeCadaForma(lista_formas_posibles, lista_drones):
                     if dron_actual.altitud == 0:
                         tiempo += 1
                         forma_actual.objeto.tiempo_emision = tiempo
+                        dron_actual.ultima_emision = tiempo
                         dron_actual.altitud = altura
                     else:
                         # Tiempo en subir o bajar a la altura
-                        tiempo += abs(dron_actual.altitud - altura)
+                        tiempo += (abs(dron_actual.altitud - altura)) 
                         dron_actual.altitud = altura
                         # Tiempo en emitir la letra
                         if seRepite:
                             tiempo += 1
                         forma_actual.objeto.tiempo_emision = tiempo
+                        dron_actual.ultima_emision = tiempo
 
                 # Si la altura es mayor a la altura máxima entonces el dron se mueve a la altura y se emite la letra, habiendo dos casos:
                 # 1. Que el dron no se haya movido, entonces el tiempo será la diferencia entre la altura máxima actual y la altura máxima nueva.
@@ -99,22 +105,28 @@ def obtenerTiempoDeCadaForma(lista_formas_posibles, lista_drones):
                 else:
                     if dron_actual.altitud == 0:
                         tiempo += abs(altura_maxima - altura)
+                        altura_maxima = altura
                         dron_actual.altitud = altura
                         if seRepite:
                             tiempo += 1
                         forma_actual.objeto.tiempo_emision = tiempo
+                        dron_actual.ultima_emision = tiempo
                     else:
                         tiempo += abs(dron_actual.altitud - altura)
+                        altura_maxima = altura
                         dron_actual.altitud = altura
                         tiempo += 1
                         if seRepite:
                             tiempo += 1
                         forma_actual.objeto.tiempo_emision = tiempo
+                        dron_actual.ultima_emision = tiempo
 
 
             ultimo_dron = nombre_dron
             forma_actual = forma_actual.siguiente
         lista_tiempos.insertar(FormaConTiempo(primera_forma.objeto, tiempo))
+
+
         
         # Reiniciar altitud de drones a 0
         dron_actual = lista_drones.inicio
@@ -128,6 +140,18 @@ def obtenerTiempoDeCadaForma(lista_formas_posibles, lista_drones):
     tiempo_minimo = lista_tiempos.inicio.objeto
 
     return tiempo_minimo
+                    
+
+
+
+
+    
+
+
+
+
+
+
 
 def generarInstrucciones(tiempo_minimo, lista_instrucciones, mensaje):
     lista_drones = mensaje.sistemaObjeto.drones
@@ -161,7 +185,7 @@ def generarInstrucciones(tiempo_minimo, lista_instrucciones, mensaje):
                         dron_actual.objeto.dron.altitud -= 1
                         contador += 1
                     elif dron_actual.objeto.dron.altitud == forma_actual.objeto.altura and forma_actual.objeto.tiempo_emision == contador+1:
-                        listaInstruccionestmp.insertar(InstruccionesFinales(contador+1,dron_actual.objeto.dron, "Emitir"))
+                        listaInstruccionestmp.insertar(InstruccionesFinales(contador+1,dron_actual.objeto.dron, "Emitir Luz"))
                         contador += 1
                         break
                     elif dron_actual.objeto.dron.altitud == forma_actual.objeto.altura and forma_actual.objeto.tiempo_emision > contador+1:
@@ -172,7 +196,7 @@ def generarInstrucciones(tiempo_minimo, lista_instrucciones, mensaje):
         
         if contador < cantidad_tiempos:
             for i in range(contador+1, cantidad_tiempos+1):
-                listaInstruccionestmp.insertar(InstruccionesFinales(i,dron_actual.objeto.dron, "esperar"))
+                listaInstruccionestmp.insertar(InstruccionesFinales(i,dron_actual.objeto.dron, "Esperar"))
         
         contador = 0
         dron_actual = dron_actual.siguiente

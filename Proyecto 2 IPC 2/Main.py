@@ -9,7 +9,7 @@ class MainGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Encriptación de mensajes")
-        self.root.geometry("800x600")  # Cambiar el tamaño de la ventana principal
+        self.root.geometry("1000x600")  # Cambiar el tamaño de la ventana principal
         self.root.resizable(False, False)  # Evitar que la ventana principal cambie de tamaño
         #Agregar texto "Hola" al centro de la ventana principal
         self.label = tk.Label(self.root, text="Encriptación de mensajes", font=("roboto", 40, "bold"))
@@ -68,14 +68,14 @@ Semestre: 4to"""
                 messagebox.showinfo("Procesamiento exitoso", "El archivo XML se procesó correctamente")
                 self.lista_drones.imprimir()
                 print(self.lista_drones.contar_elementos())
-            except:
+            except Exception as e:
+                print(e)
                 messagebox.showerror("Error", "Ocurrió un error al procesar el archivo XML")
         else:
             messagebox.showinfo("Archivo no seleccionado", "No se seleccionó ningún archivo XML")
 
     def generar_xml(self):
-        print()
-        self.lista_drones.imprimir()
+        escribir_salida(self.lista_instrucciones)
         pass
 
     def gestion_drones(self):
@@ -114,21 +114,25 @@ Semestre: 4to"""
             messagebox.showerror("Error", "No se han podido obtener los drones")
     
     def obtener_mensajes(self, texto_mensajes):
-            texto_mensajes.delete("1.0", tk.END)
-            # Rellenamos la lista de mensajes junto a sus instrucciones
-            lista_mensajes_ordenados = obtenerMensajesOrdenadosAlfabeticamente(self.lista_mensajes)
-            mensaje_actual = lista_mensajes_ordenados.inicio
-            contador = 1
-            while mensaje_actual != None:
-                texto_mensajes.insert(tk.END, "No." + str(contador) + " Nombre: "+ str(mensaje_actual.objeto.nombre)  +  " - Sistema: " + str(mensaje_actual.objeto.sistema) + " - Mensaje: " + str(mensaje_actual.objeto.mensaje_decodificado) + "\n")
-                texto_mensajes.insert(tk.END, "Instrucciones: \n")
-                instruccion_actual = mensaje_actual.objeto.lista_instrucciones.inicio
-                while instruccion_actual != None:
-                    texto_mensajes.insert(tk.END, str(instruccion_actual.objeto.nombreDron) + " - " + str(instruccion_actual.objeto.altura) + "\n")
-                    instruccion_actual = instruccion_actual.siguiente
-                texto_mensajes.insert(tk.END, "\n")
-                mensaje_actual = mensaje_actual.siguiente
-                contador += 1
+            try: 
+                texto_mensajes.delete("1.0", tk.END)
+                # Rellenamos la lista de mensajes junto a sus instrucciones
+                lista_mensajes_ordenados = obtenerMensajesOrdenadosAlfabeticamente(self.lista_mensajes)
+                mensaje_actual = lista_mensajes_ordenados.inicio
+                contador = 1
+                while mensaje_actual != None:
+                    texto_mensajes.insert(tk.END, "No." + str(contador) + " Nombre: "+ str(mensaje_actual.objeto.nombre)  +  " - Sistema: " + str(mensaje_actual.objeto.sistema) + " - Mensaje: " + str(mensaje_actual.objeto.mensaje_decodificado) + "\n")
+                    texto_mensajes.insert(tk.END, "Instrucciones: \n")
+                    instruccion_actual = mensaje_actual.objeto.lista_instrucciones.inicio
+                    while instruccion_actual != None:
+                        texto_mensajes.insert(tk.END, str(instruccion_actual.objeto.nombreDron) + " - " + str(instruccion_actual.objeto.altura) + "\n")
+                        instruccion_actual = instruccion_actual.siguiente
+                    texto_mensajes.insert(tk.END, "\n")
+                    mensaje_actual = mensaje_actual.siguiente
+                    contador += 1
+            except Exception as e:
+                print(e)
+                messagebox.showerror("Error", "No se han podido obtener los mensajes")
 
 
 
@@ -155,7 +159,9 @@ Semestre: 4to"""
     def generar_imagen_sistema(self):
         try:
             graficarSistemas(self.lista_sistema)
-        except:
+        #Imprimimos la excepcion en caso de que no se pueda generar el grafico
+        except Exception as e:
+            print(e)
             messagebox.showerror("Error", "No se ha podido generar el grafico del sistema")
 
     def ver_listado_mensajes(self):
@@ -212,7 +218,10 @@ Semestre: 4to"""
             if mensaje:
 
                     lista_formas_posibles = ListaDoblementeEnlazada()
-                    dron_actual = mensaje.sistemaObjeto.drones.inicio
+
+                    #Codigo para obtener el tiempo optimo de cualquier mensaje
+
+                    """dron_actual = mensaje.sistemaObjeto.drones.inicio
                     altura_actual = dron_actual.objeto.lista_alturas.inicio
                     caracter_actual = mensaje.lista_caracteres.inicio
 
@@ -223,7 +232,26 @@ Semestre: 4to"""
                     else:
                         tiempo_minimo = obtenerTiempoDeCadaForma(lista_formas_posibles, self.lista_drones)
                         mensaje.tiempo_optimo = tiempo_minimo.tiempo
+                        generarInstrucciones(tiempo_minimo, self.lista_instrucciones, mensaje)"""
+                    
+                    #Codigo para obtener el tiempo optimo de un mensaje con el sistema 1 con el set de instrucciones dado
+                    try:
+                        forma_unica = ListaDoblementeEnlazada()
+                        instruccion_actual = mensaje.lista_instrucciones.inicio
+                        while instruccion_actual != None:
+                            forma_unica.insertar(Forma(instruccion_actual.objeto.nombreDron, instruccion_actual.objeto.altura, instruccion_actual.objeto.caracter))
+                            instruccion_actual = instruccion_actual.siguiente
+
+                        lista_formas_posibles.insertar(forma_unica)
+
+                        tiempo_minimo = obtenerTiempoDeCadaForma(lista_formas_posibles, self.lista_drones)
+
+                        mensaje.tiempo_optimo = tiempo_minimo.tiempo
                         generarInstrucciones(tiempo_minimo, self.lista_instrucciones, mensaje)
+                    except Exception as e:
+                        print(e)
+                        messagebox.showerror("Error", "No se ha podido obtener el tiempo optimo del mensaje ni generar las instrucciones")
+                    
 
 
                     campo_texto_1.delete(0, tk.END)
@@ -234,6 +262,7 @@ Semestre: 4to"""
                     campo_texto_3.insert(0, mensaje.tiempo_optimo)
 
                     #Imprimimos la lista de instrucciones
+                    """
                     instruccion_actual = self.lista_instrucciones.inicio
                     while instruccion_actual != None:
                         instruccion = instruccion_actual.objeto.instrucciones.inicio
@@ -241,62 +270,60 @@ Semestre: 4to"""
                             print(instruccion.objeto.tiempo, instruccion.objeto.dron.nombre, instruccion.objeto.accion)
                             instruccion = instruccion.siguiente
                         instruccion_actual = instruccion_actual.siguiente
+                    """
             else:
-                messagebox.showerror("Error", "No se encontró el mensaje con el ID ingresado")
                 return
             
         def ver_grafico_instrucciones():
-            id_mensaje = id_mensaje_entry.get()
-            mensaje = obtener_mensaje_por_id(id_mensaje)
-            entro = False
+            try:
+                id_mensaje = id_mensaje_entry.get()
+                mensaje = obtener_mensaje_por_id(id_mensaje)
+                entro = False
 
-            if mensaje:
-                instruccion_actual = self.lista_instrucciones.inicio
-                while instruccion_actual is not None:
-                    if instruccion_actual.objeto.mensaje.id_mensaje == mensaje.id_mensaje:
-                        entro = True
-                        grafo = graphviz.Digraph('Instrucciones para transmitir mensajes', filename='Instrucciones.gv', format='png')
+                if mensaje:
+                    grafo = graphviz.Digraph('Instrucciones para transmitir mensajes', filename='Instrucciones.gv', format='png')
+                    instruccion_actual = self.lista_instrucciones.inicio
+                    while instruccion_actual is not None:
+                        if instruccion_actual.objeto.mensaje.id_mensaje == mensaje.id_mensaje:
+                            tabla_html = "<<table border='1' cellborder='1' cellspacing='0'><tr><td bgcolor = '#80ed99' colspan='" + str(instruccion_actual.objeto.mensaje.sistemaObjeto.cantidad_drones + 1) + "'>" + str(instruccion_actual.objeto.mensaje.nombre) + "</td></tr><tr><td bgcolor='#c7f9cc'>Tiempo (seg)</td>"
 
-                        grafo.node(str(instruccion_actual.objeto.mensaje.nombre), str(instruccion_actual.objeto.mensaje.nombre))
-                        grafo.node(str(instruccion_actual.objeto.mensaje.nombre) + "tiempo", "Tiempo (seg)")
-                        grafo.edge(str(instruccion_actual.objeto.mensaje.nombre), str(instruccion_actual.objeto.mensaje.nombre) + "tiempo")
-                        
-                        #Agreamos numeracion de segundos
-                        for i in range(1, instruccion_actual.objeto.mensaje.tiempo_optimo + 1):
-                            grafo.node(str(instruccion_actual.objeto.mensaje.nombre) + "tiempo" + str(i), str(i))
-                            if i == 1:
-                                grafo.edge(str(instruccion_actual.objeto.mensaje.nombre) + "tiempo", str(instruccion_actual.objeto.mensaje.nombre) + "tiempo" + str(i))
-                            else:
-                                grafo.edge(str(instruccion_actual.objeto.mensaje.nombre) + "tiempo" + str(i-1), str(instruccion_actual.objeto.mensaje.nombre) + "tiempo" + str(i))
-                        
-                        
+                            #Agregamos el nombre de cada dron
+                            dron_actual = instruccion_actual.objeto.mensaje.sistemaObjeto.drones.inicio
+                            while dron_actual is not None:
+                                tabla_html += "<td bgcolor = '#c7f9cc'>" + str(dron_actual.objeto.dron.nombre) + "</td>"
+                                dron_actual = dron_actual.siguiente
 
-                        #Añadimos nodos para cada dron del sistema
-                        dron_actual = instruccion_actual.objeto.mensaje.sistemaObjeto.drones.inicio
-                        while dron_actual is not None:
-                            grafo.node(str(dron_actual.id_nodo), str(dron_actual.objeto.dron.nombre))
-                            grafo.edge(str(instruccion_actual.objeto.mensaje.nombre), str(dron_actual.id_nodo))
-                            primer_tiempo = True
-                            #Añadimos nodos para cada instruccion del dron
-                            instruccion_dron_actual = instruccion_actual.objeto.instrucciones.inicio
-                            while instruccion_dron_actual is not None:
-                                if instruccion_dron_actual.objeto.dron.nombre == dron_actual.objeto.dron.nombre:
-                                    grafo.node(str(instruccion_dron_actual.id_nodo), str(instruccion_dron_actual.objeto.accion))
-                                    if primer_tiempo:
-                                        grafo.edge(str(dron_actual.id_nodo), str(instruccion_dron_actual.id_nodo))
-                                        primer_tiempo = False
-                                    else:
-                                        grafo.edge(str(instruccion_dron_actual.anterior.id_nodo), str(instruccion_dron_actual.id_nodo))
-                                instruccion_dron_actual = instruccion_dron_actual.siguiente
+                            tabla_html += "</tr>"
+                            
+                            #Agregamos numeracion de segundos y las instrucciones de cada dron en cada segundo
+                            for i in range(1, instruccion_actual.objeto.mensaje.tiempo_optimo + 1):
+                                tabla_html += "<tr><td bgcolor='#ffffff'>" + str(i) + "</td>"
+                                dron_actual = instruccion_actual.objeto.mensaje.sistemaObjeto.drones.inicio
+                                while dron_actual is not None:
+                                    instruccion_dron_actual = instruccion_actual.objeto.instrucciones.inicio
+                                    while instruccion_dron_actual is not None:
+                                        if instruccion_dron_actual.objeto.dron.nombre == dron_actual.objeto.dron.nombre and instruccion_dron_actual.objeto.tiempo == i:
+                                            tabla_html += "<td bgcolor='#ffffff'>" + str(instruccion_dron_actual.objeto.accion) + "</td>"
+                                        instruccion_dron_actual = instruccion_dron_actual.siguiente
+                                    dron_actual = dron_actual.siguiente
+                                tabla_html += "</tr>"
 
-                            dron_actual = dron_actual.siguiente
-                        break
+                            tabla_html += "</table>>"
+                            grafo.node(str(instruccion_actual.id_nodo), label = tabla_html, margin = '0', shape = 'none')
+                            grafo.view()
+                            break
+
+
+
+                        else:
+                            instruccion_actual = instruccion_actual.siguiente
+                    
                     else:
-                        instruccion_actual = instruccion_actual.siguiente
-                if entro:
-                    grafo.render(view=True)
-                else:
-                    messagebox.showerror("Error", "Procese el mensaje primero")
+                        messagebox.showerror("Error", "Procese el mensaje primero")
+
+            except Exception as e:
+                print(e)
+                messagebox.showerror("Error", "No se ha podido generar el grafico de instrucciones")
 
 
 
@@ -304,11 +331,18 @@ Semestre: 4to"""
                      
 
         def obtener_mensaje_por_id(id_mensaje):
-            mensaje_actual = self.lista_mensajes.inicio
-            while mensaje_actual != None:
-                if str(mensaje_actual.objeto.id_mensaje) == str(id_mensaje):
-                    return mensaje_actual.objeto
-                mensaje_actual = mensaje_actual.siguiente
+            try:
+                mensaje_actual = self.lista_mensajes.inicio
+                while mensaje_actual != None:
+                    if str(mensaje_actual.objeto.id_mensaje) == str(id_mensaje):
+                        return mensaje_actual.objeto
+                    mensaje_actual = mensaje_actual.siguiente
+                messagebox.showerror("Error", "No se encontró el mensaje con el ID ingresado")
+                return None
+            except Exception as e:
+                print(e)
+                messagebox.showerror("Error", "No se ha podido obtener el mensaje")
+
 
         # Botón para seleccionar mensaje
         boton_seleccionar = tk.Button(ventana_instrucciones, text="Seleccionar", command=seleccionar_mensaje)
@@ -326,17 +360,22 @@ Semestre: 4to"""
                         
 
     def obtener_mensaje_sin_ordenar(self, texto_mensajes):
-        mensaje_actual = self.lista_mensajes.inicio
-        while mensaje_actual != None:
-            texto_mensajes.insert(tk.END, "ID: " + str(mensaje_actual.objeto.id_mensaje) + " - Nombre: "+ str(mensaje_actual.objeto.nombre) +  " - Sistema: " + str(mensaje_actual.objeto.sistema) + " - Mensaje: " + str(mensaje_actual.objeto.mensaje_decodificado) + "\n")
-            texto_mensajes.insert(tk.END, "Instrucciones:")
-            instruccion_actual = mensaje_actual.objeto.lista_instrucciones.inicio
-            while instruccion_actual != None:
-                texto_mensajes.insert(tk.END, str(instruccion_actual.objeto.nombreDron) + " - " + str(instruccion_actual.objeto.altura) + "\n")
-                instruccion_actual = instruccion_actual.siguiente
-            texto_mensajes.insert(tk.END, "\n")
+        try: 
+            mensaje_actual = self.lista_mensajes.inicio
+            while mensaje_actual != None:
+                texto_mensajes.insert(tk.END, "ID: " + str(mensaje_actual.objeto.id_mensaje) + " - Nombre: "+ str(mensaje_actual.objeto.nombre) +  " - Sistema: " + str(mensaje_actual.objeto.sistema) + " - Mensaje: " + str(mensaje_actual.objeto.mensaje_decodificado) + "\n")
+                texto_mensajes.insert(tk.END, "Instrucciones:")
+                instruccion_actual = mensaje_actual.objeto.lista_instrucciones.inicio
+                while instruccion_actual != None:
+                    texto_mensajes.insert(tk.END, str(instruccion_actual.objeto.nombreDron) + " - " + str(instruccion_actual.objeto.altura) + "\n")
+                    instruccion_actual = instruccion_actual.siguiente
+                texto_mensajes.insert(tk.END, "\n")
 
-            mensaje_actual = mensaje_actual.siguiente
+                mensaje_actual = mensaje_actual.siguiente
+        except Exception as e:
+            print(e)
+            messagebox.showerror("Error", "No se han podido obtener los mensajes")
+
 
 
 

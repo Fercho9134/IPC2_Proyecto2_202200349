@@ -3,6 +3,7 @@ class Dron:
         self.nombre = nombre
         self.altitud = 0
         self.luz = False
+        self.ultima_emision = 0
 
     
     def subir(self):
