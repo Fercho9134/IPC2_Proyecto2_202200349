@@ -4,6 +4,7 @@ from FormaConTiempo import FormaConTiempo
 from InstruccionesFinales import InstruccionesFinales
 from MensajeConInstruccion import MensajeConInstruccion
 from Procesar_xml import obtenerLetra
+from tkinter import messagebox
 
 
 import copy
@@ -140,17 +141,6 @@ def obtenerTiempoDeCadaForma(lista_formas_posibles, lista_drones):
     tiempo_minimo = lista_tiempos.inicio.objeto
 
     return tiempo_minimo
-                    
-
-
-
-
-    
-
-
-
-
-
 
 
 def generarInstrucciones(tiempo_minimo, lista_instrucciones, mensaje):
@@ -209,6 +199,138 @@ def generarInstrucciones(tiempo_minimo, lista_instrucciones, mensaje):
         dron_actual = dron_actual.siguiente
                     
 
+def obtenerTiempoDeCadaForma2(lista_formas_posibles, lista_drones, mensaje):
+    primera_forma = lista_formas_posibles.inicio
+    lista_tiempos = ListaDoblementeEnlazada()
+    cantidad_instrucciones_seguidas = 0
+    
+    while primera_forma is not None:
+        tiempo = 0
+        se_emitio = False
+        forma_actual = primera_forma.objeto.inicio
+        forma_emitida = None
+
+        lista_drones_forma_actual = mensaje.sistemaObjeto.drones
+
+        #Impresion de la forma actual
+        print("Forma actual: ")
+        forma_actual_aux = primera_forma.objeto.inicio
+        while forma_actual_aux is not None:
+            print(forma_actual_aux.objeto.nombreDron, forma_actual_aux.objeto.altura, forma_actual_aux.objeto.letra, forma_actual_aux.objeto.numero_de_instruccion)
+            print("")
+            forma_actual_aux = forma_actual_aux.siguiente
+
+        ###Vamos a ir subiendo, bajando y emitiendo la letra de todos los drones, segundo a segundo
+        while cantidad_instrucciones_seguidas != primera_forma.objeto.contar_elementos():
+            print("Tiempo: ", tiempo, "Instrucciones ejecutadas", cantidad_instrucciones_seguidas, "de", primera_forma.objeto.contar_elementos())
+            forma_actual = primera_forma.objeto.inicio
+            if "null" in mensaje.mensaje_decodificado:
+                messagebox.showerror("Error", "No se puede decodificar el mensaje, verifique el sistema")
+                return None
+                
+
+            #por cada segundo, recorremos la forma completa, para ver si hay que subir, bajar o emitir cada uno de los drones
+            while forma_actual is not None:
+
+                dron_actual = lista_drones_forma_actual.inicio
+
+                while dron_actual != None:
+
+                    if dron_actual.objeto.dron.nombre == forma_actual.objeto.nombreDron and forma_actual.objeto.usada == False:
+
+                        if dron_actual.objeto.dron.altitud < forma_actual.objeto.altura and forma_actual.objeto.usada == False and forma_actual.objeto.estado == "en curso":
+                            dron_actual.objeto.dron.altitud += 1
+                            #Cambiamos el estado de todas las demas formas en las que aparece el dron menos la actual, a "en espera"
+                            forma_actual_aux = primera_forma.objeto.inicio
+                            
+                            print("Se subio el dron", dron_actual.objeto.dron.nombre, "a la altura", dron_actual.objeto.dron.altitud)
+
+                            while forma_actual_aux is not None:
+                                if forma_actual_aux.objeto.nombreDron == forma_actual.objeto.nombreDron and forma_actual_aux.objeto.numero_de_instruccion != forma_actual.objeto.numero_de_instruccion:
+                                    forma_actual_aux.objeto.estado = "en espera"
+                                forma_actual_aux = forma_actual_aux.siguiente
+                            
+                            
+
+                        elif dron_actual.objeto.dron.altitud > forma_actual.objeto.altura and forma_actual.objeto.usada == False and forma_actual.objeto.estado == "en curso":
+                            dron_actual.objeto.dron.altitud -= 1
+                            #Cambiamos el estado de todas las demas formas en las que aparece el dron menos la actual, a "en espera"
+                            forma_actual_aux = primera_forma.objeto.inicio
+                            print("Se bajo el dron", dron_actual.objeto.dron.nombre, "a la altura", dron_actual.objeto.dron.altitud)
+                            
+                            while forma_actual_aux is not None:
+                                if forma_actual_aux.objeto.nombreDron == forma_actual.objeto.nombreDron and forma_actual_aux.objeto.numero_de_instruccion != forma_actual.objeto.numero_de_instruccion:
+                                    forma_actual_aux.objeto.estado = "en espera"
+                                forma_actual_aux = forma_actual_aux.siguiente
+                            
+
+                        elif dron_actual.objeto.dron.altitud == forma_actual.objeto.altura and forma_actual.objeto.numero_de_instruccion == cantidad_instrucciones_seguidas+1 and forma_actual.objeto.usada == False and forma_actual.objeto.estado == "en curso":
+                            forma_actual.objeto.usada = True
+
+                            forma_actual.objeto.tiempo_emision = tiempo+1
+                            #Cambiamos el estado de todas las demas formas en las que aparece el dron menos la actual, a "en curso" la actual la marcamos como "emitida"
+                            forma_emitida = forma_actual
+                            se_emitio = True	
+                            
+                            
+                        elif dron_actual.objeto.dron.altitud == forma_actual.objeto.altura and forma_actual.objeto.numero_de_instruccion > cantidad_instrucciones_seguidas+1 and forma_actual.objeto.usada == False and forma_actual.objeto.estado == "en curso":
+                            print("El dron", dron_actual.objeto.dron.nombre, "espera", "en la altura", dron_actual.objeto.dron.altitud)
+                            if dron_actual.objeto.dron.altitud == 5 and dron_actual.objeto.dron.nombre == "Dron03" and forma_actual.objeto.numero_de_instruccion == 8:
+                                print("")
+
+                            forma_actual_aux = primera_forma.objeto.inicio
+                            while forma_actual_aux is not None:
+                                if forma_actual_aux.objeto.nombreDron == forma_actual.objeto.nombreDron and forma_actual_aux.objeto.numero_de_instruccion != forma_actual.objeto.numero_de_instruccion:
+                                    forma_actual_aux.objeto.estado = "en espera"
+                                forma_actual_aux = forma_actual_aux.siguiente
+                        
+
+                    dron_actual = dron_actual.siguiente
+                
+                forma_actual = forma_actual.siguiente
+            tiempo += 1
+
+            if se_emitio == True:
+
+                cantidad_instrucciones_seguidas += 1
+                se_emitio = False
+                forma_actual_aux = primera_forma.objeto.inicio
+
+                if forma_emitida.objeto.numero_de_instruccion == 4:
+                    print("")
+
+                while forma_actual_aux is not None:
+                    if forma_actual_aux.objeto.nombreDron == forma_emitida.objeto.nombreDron and forma_actual_aux.objeto.numero_de_instruccion != forma_emitida.objeto.numero_de_instruccion:
+                        forma_actual_aux.objeto.estado = "en curso"
+                    forma_actual_aux = forma_actual_aux.siguiente
+
+                forma_emitida.objeto.estado = "emitida"
+                print("Se emitio la letra", forma_emitida.objeto.letra, "en el tiempo", tiempo-1, "por el dron", forma_emitida.objeto.nombreDron, "en la altura", forma_emitida.objeto.altura)
+                forma_emitida = None
+
+        
+        lista_tiempos.insertar(FormaConTiempo(primera_forma.objeto, tiempo))
+        cantidad_instrucciones_seguidas = 0
+
+        #Reiniciamos altitud de drones a 0
+        dron_actual = mensaje.sistemaObjeto.drones.inicio
+        while dron_actual is not None:
+            dron_actual.objeto.dron.altitud = 0
+            dron_actual = dron_actual.siguiente
+
+        #Reiniciamos usada de formas a False
+        forma_actual = primera_forma.objeto.inicio
+        while forma_actual is not None:
+            forma_actual.objeto.usada = False
+            forma_actual = forma_actual.siguiente
+        
+        primera_forma = primera_forma.siguiente
+
+    
+    lista_tiempos.ordenarPorTiempoBurbuja()
+    tiempo_minimo = lista_tiempos.inicio.objeto
+
+    return tiempo_minimo
 
 
 
