@@ -4,6 +4,7 @@ from ListaDoblementeEnlazada import ListaDoblementeEnlazada
 from Procesar_xml import *
 from TiempoOptimo import *
 from Dron import Dron
+import webbrowser
 
 class MainGUI:
     def __init__(self, root):
@@ -44,12 +45,17 @@ class MainGUI:
 
     def mostrar_ayuda(self):
         mensaje_ayuda = """Datos del estudiante:
-Nombre: Irving Fernando Alvarado Asensio
-Carné: 202200349
-Curso: Introducción a la Programación y Computación 2 Sección N
-Carrera: Ingeniería en Ciencias y Sistemas
-Semestre: 4to"""
-        messagebox.showinfo("Ayuda", mensaje_ayuda)
+            Nombre: Irving Fernando Alvarado Asensio
+            Carné: 202200349
+            Curso: Introducción a la Programación y Computación 2 Sección N
+            Carrera: Ingeniería en Ciencias y Sistemas
+            Semestre: 4to \n\n Documentación: https://bit.ly/3ZI7POe"""
+
+        respuesta_docu = messagebox.askyesno("Ayuda", mensaje_ayuda + "\n\n¿Abrir el enlace?")
+
+
+        if respuesta_docu:
+            webbrowser.open("https://bit.ly/3ZI7POe")
 
     def inicializar_sistema(self):
         #Reiniciamos listas
@@ -239,12 +245,12 @@ Semestre: 4to"""
                         forma_unica = ListaDoblementeEnlazada()
                         instruccion_actual = mensaje.lista_instrucciones.inicio
                         while instruccion_actual != None:
-                            forma_unica.insertar(Forma(instruccion_actual.objeto.nombreDron, instruccion_actual.objeto.altura, instruccion_actual.objeto.caracter))
+                            forma_unica.insertar(Forma(instruccion_actual.objeto.nombreDron, instruccion_actual.objeto.altura, instruccion_actual.objeto.caracter, instruccion_actual.objeto.numero_de_instruccion))
                             instruccion_actual = instruccion_actual.siguiente
 
                         lista_formas_posibles.insertar(forma_unica)
 
-                        tiempo_minimo = obtenerTiempoDeCadaForma(lista_formas_posibles, self.lista_drones)
+                        tiempo_minimo = obtenerTiempoDeCadaForma2(lista_formas_posibles, self.lista_drones, mensaje)
 
                         mensaje.tiempo_optimo = tiempo_minimo.tiempo
                         generarInstrucciones(tiempo_minimo, self.lista_instrucciones, mensaje)
